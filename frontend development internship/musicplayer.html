@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sample Music Player</title>
+<style>
+body {
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    font-family:Arial;
+    color:white;
+}
+
+.player {
+    width:360px;
+    background: rgba(255,255,255,0.15);
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+}
+
+button {
+    font-size:20px;
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:50%;
+    cursor:pointer;
+}
+
+.progress {
+    width:100%;
+    height:6px;
+    background:#555;
+    margin:15px 0;
+    cursor:pointer;
+    border-radius:3px;
+}
+.bar {
+    height:100%;
+    width:0%;
+    background:#1db954;
+    border-radius:3px;
+}
+
+.time {
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+}
+
+h2 {
+    margin-bottom:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="player">
+    <h2>Sample Music Player</h2>
+    <p id="trackName">Track Name</p>
+
+    <div class="progress" id="progress" onclick="seek(event)">
+        <div class="bar" id="bar"></div>
+    </div>
+    <div class="time">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <div>
+        <button onclick="prevTrack()">⏮️</button>
+        <button onclick="togglePlay()" id="playBtn">▶️</button>
+        <button onclick="stopMusic()">⏹️</button>
+        <button onclick="nextTrack()">⏭️</button>
+    </div>
+
+    <br>
+    Volume
+    <input type="range" min="0" max="1" step="0.01" value="0.7" onchange="audio.volume=this.value">
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const audio = document.getElementById("audio");
+const bar = document.getElementById("bar");
+const progress = document.getElementById("progress");
+const playBtn = document.getElementById("playBtn");
+const currentTimeEl = document.getElementById("currentTime");
+const durationEl = document.getElementById("duration");
+const trackName = document.getElementById("trackName");
+
+// 🎵 Sample music playlist (public domain / demo MP3s)
+const tracks = [
+    { name: "Sample Track 1", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+    { name: "Sample Track 2", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+    { name: "Sample Track 3", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" }
+];
+
+let currentTrack = 0;
+
+// Load track
+function loadTrack(index) {
+    audio.src = tracks[index].src;
+    trackName.textContent = tracks[index].name;
+    audio.load();
+}
+loadTrack(currentTrack);
+
+// Play / Pause
+function togglePlay() {
+    if(audio.paused){
+        audio.play();
+        playBtn.textContent = "⏸️";
+    } else {
+        audio.pause();
+        playBtn.textContent = "▶️";
+    }
+}
+
+// Stop
+function stopMusic() {
+    audio.pause();
+    audio.currentTime = 0;
+    playBtn.textContent = "▶️";
+}
+
+// Next / Previous
+function nextTrack() {
+    currentTrack = (currentTrack + 1) % tracks.length;
+    loadTrack(currentTrack);
+    audio.play();
+    playBtn.textContent = "⏸️";
+}
+
+function prevTrack() {
+    currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
+    loadTrack(currentTrack);
+    audio.play();
+    playBtn.textContent = "⏸️";
+}
+
+// Update progress bar
+audio.ontimeupdate = () => {
+    const percent = (audio.currentTime / audio.duration) * 100;
+    bar.style.width = percent + "%";
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
+};
+
+// Seek
+function seek(event) {
+    const rect = progress.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    audio.currentTime = (clickX / rect.width) * audio.duration;
+}
+
+// Format time
+function formatTime(sec){
+    if(isNaN(sec)) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s < 10 ? "0" + s : s}`;
+}
+
+// Auto next track
+audio.onended = () => nextTrack();
+</script>
+
+</body>
+</html>
